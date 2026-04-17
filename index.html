@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>SEM Clicker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+
+    body {
+      background: #050509;
+      color: #eee;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1100px;
+      background: #111;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.7);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 24px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 15px;
+      font-size: 14px;
+    }
+
+    .stats div span {
+      font-weight: bold;
+      color: #4fd1ff;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    .clicker {
+      background: #181818;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .circle {
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      margin: 20px auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      border: 4px solid #333;
+      transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.2s, border-color 0.2s;
+      background: radial-gradient(circle at 30% 30%, #333, #000);
+      box-shadow: 0 0 20px rgba(0,0,0,0.7);
+    }
+
+    .circle span {
+      font-size: 20px;
+    }
+
+    .circle:active {
+      transform: scale(0.96);
+      box-shadow: 0 0 25px rgba(255,255,255,0.2);
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .menu button {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #222;
+      color: #eee;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s, transform 0.05s;
+      font-size: 14px;
+    }
+
+    .menu button:hover {
+      background: #2e2e2e;
+      transform: translateY(-1px);
+    }
+
+    .panel {
+      margin-top: 20px;
+      background: #181818;
+      border-radius: 12px;
+      padding: 15px;
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .panel h2 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .row {
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    .shop-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #333;
+      font-size: 14px;
+    }
+
+    .shop-item:last-child {
+      border-bottom: none;
+    }
+
+    .btn {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      background: #3b82f6;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      margin-left: 5px;
+    }
+
+    .btn.secondary {
+      background: #444;
+    }
+
+    input[type="number"], input[type="text"] {
+      background: #111;
+      border: 1px solid #444;
+      color: #eee;
+      padding: 4px 6px;
+      border-radius: 4px;
+      width: 80px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .skins-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .skin-card {
+      background: #202020;
+      border-radius: 8px;
+      padding: 8px;
+      width: 150px;
+      font-size: 13px;
+      border: 1px solid #333;
+    }
+
+    .skin-card h4 {
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .skin-card button {
+      margin-top: 6px;
+      width: 100%;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #4fd1ff;
+    }
+
+    /* Brainrot skins visuals */
+    .skin-skibidi .circle {
+      background: radial-gradient(circle at 30% 30%, #ff00ff, #3b0066);
+      border-color: #ff00ff;
+      box-shadow: 0 0 25px rgba(255,0,255,0.5);
+    }
+
+    .skin-ohio .circle {
+      background: radial-gradient(circle at 30% 30%, #00ff9d, #004433);
+      border-color: #00ff9d;
+      box-shadow: 0 0 25px rgba(0,255,157,0.5);
+    }
+
+    .skin-fanum .circle {
+      background: radial-gradient(circle at 30% 30%, #ffb300, #663300);
+      border-color: #ffb300;
+      box-shadow: 0 0 25px rgba(255,179,0,0.5);
+    }
+
+    .skin-gyatt .circle {
+      background: radial-gradient(circle at 30% 30%, #ff4b4b, #660000);
+      border-color: #ff4b4b;
+      box-shadow: 0 0 25px rgba(255,75,75,0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="appRoot">
+    <header>
+      <h1>SEM Clicker</h1>
+      <div class="stats">
+        <div>Per klik: <span id="perClick">1</span></div>
+        <div>Per seconde: <span id="perSecond">0</span></div>
+        <div>SEM's: <span id="sems">0</span></div>
+      </div>
+    </header>
+
+    <div class="main">
+      <div class="clicker">
+        <button class="btn" id="playBtn">PLAY</button>
+        <div class="circle" id="clickCircle">
+          <span>CLICK</span>
+        </div>
+        <p class="small">Druk op ENTER om te klikken.</p>
+      </div>
+
+      <div class="menu">
+        <button data-panel="shop">Shop</button>
+        <button data-panel="gamble">Gamble</button>
+        <button data-panel="skins">Skins</button>
+        <button data-panel="settings">Settings</button>
+      </div>
+    </div>
+
+    <!-- SHOP -->
+    <div class="panel" id="panel-shop">
+      <h2>Shop</h2>
+      <div class="row">SEM's: <span id="shopSems">0</span></div>
+      <div class="row">Click level: <span id="clickLevel">1</span> | Auto level: <span id="autoLevel">0</span></div>
+
+      <div id="shopItems"></div>
+      <p class="small">Elke upgrade: eerst +1 click, dan +1 auto, dan +2 click, +2 auto, enz.</p>
+    </div>
+
+    <!-- GAMBLE / BLACKJACK -->
+    <div class="panel" id="panel-gamble">
+      <h2>Gamble — Blackjack</h2>
+
+      <div class="row">SEM's: <span id="bjSems">0</span></div>
+      <div class="row">
+        <span class="label">Inzet:</span>
+        <input type="number" id="bjBet" value="10" min="1">
+      </div>
+
+      <div class="row">
+        <button class="btn" id="bjStart">Start ronde</button>
+        <button class="btn secondary" id="bjHit">Hit</button>
+        <button class="btn secondary" id="bjStand">Stand</button>
+      </div>
+
+      <div class="row">
+        <span class="label">Dealer:</span> <span id="bjDealer">?</span>
+      </div>
+      <div class="row">
+        <span class="label">Jij:</span> <span id="bjPlayer">?</span>
+      </div>
+      <div class="row">
+        <span class="label">Resultaat:</span> <span id="bjResult"></span>
+      </div>
+    </div>
+
+    <!-- SKINS -->
+    <div class="panel" id="panel-skins">
+      <h2>Skins — Brainrot</h2>
+      <p class="small">Skins veranderen de look van de click‑circle. Sommige geven een kleine bonus.</p>
+
+      <div class="skins-list">
+        <div class="skin-card">
+          <h4>Default</h4>
+          <p>Geen bonus.</p>
+          <button class="btn secondary" data-skin="default">Equip</button>
+        </div>
+        <div class="skin-card">
+          <h4>Skibidi</h4>
+          <p>+10% per klik.</p>
+          <button class="btn secondary" data-skin="skibidi">Equip</button>
+        </div>
+        <div class="skin-card">
+          <h4>Ohio</h4>
+          <p>+10% per seconde.</p>
+          <button class="btn secondary" data-skin="ohio">Equip</button>
+        </div>
+        <div class="skin-card">
+          <h4>Fanum Tax</h4>
+          <p>+5% klik & auto.</p>
+          <button class="btn secondary" data-skin="fanum">Equip</button>
+        </div>
+        <div class="skin-card">
+          <h4>Gyatt</h4>
+          <p>+20% per klik, -10% auto.</p>
+          <button class="btn secondary" data-skin="gyatt">Equip</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="panel" id="panel-settings">
+      <h2>Settings & Stats</h2>
+
+      <h3>Keybinds</h3>
+      <p>Click keybind: <span class="label">ENTER</span></p>
+
+      <h3>Gamble stats</h3>
+      <div class="row">Blackjack wins: <span id="bjWins">0</span></div>
+      <div class="row">Blackjack losses: <span id="bjLosses">0</span></div>
+
+      <h3>SEM stats</h3>
+      <div class="row">Totaal verdiend: <span id="totalEarned">0</span> SEM's</div>
+      <div class="row">Totaal verloren (gok): <span id="totalLost">0</span> SEM's</div>
+      <div class="row">Hoogste ooit: <span id="highestEver">0</span> SEM's</div>
+    </div>
+  </div>
+
+  <script>
+    // -----------------------------
+    // CORE STATE
+    // -----------------------------
+    let sems = 0;
+    let perClick = 1;
+    let perSecond = 0;
+    let clickLevel = 1;
+    let autoLevel = 0;
+
+    let totalEarned = 0;
+    let totalLost = 0;
+    let highestEver = 0;
+
+    let bjWins = 0;
+    let bjLosses = 0;
+
+    let currentSkin = "default";
+
+    const semsEl = document.getElementById("sems");
+    const perClickEl = document.getElementById("perClick");
+    const perSecondEl = document.getElementById("perSecond");
+    const shopSemsEl = document.getElementById("shopSems");
+    const clickLevelEl = document.getElementById("clickLevel");
+    const autoLevelEl = document.getElementById("autoLevel");
+    const totalEarnedEl = document.getElementById("totalEarned");
+    const totalLostEl = document.getElementById("totalLost");
+    const highestEverEl = document.getElementById("highestEver");
+    const bjWinsEl = document.getElementById("bjWins");
+    const bjLossesEl = document.getElementById("bjLosses");
+
+    function applySkinMultipliers(baseClick, baseSecond) {
+      let c = baseClick;
+      let s = baseSecond;
+
+      if (currentSkin === "skibidi") {
+        c *= 1.1;
+      } else if (currentSkin === "ohio") {
+        s *= 1.1;
+      } else if (currentSkin === "fanum") {
+        c *= 1.05;
+        s *= 1.05;
+      } else if (currentSkin === "gyatt") {
+        c *= 1.2;
+        s *= 0.9;
+      }
+
+      return {
+        click: c,
+        second: s
+      };
+    }
+
+    function updateStats() {
+      const mult = applySkinMultipliers(perClick, perSecond);
+
+      semsEl.textContent = Math.floor(sems);
+      perClickEl.textContent = mult.click.toFixed(2);
+      perSecondEl.textContent = mult.second.toFixed(2);
+      shopSemsEl.textContent = Math.floor(sems);
+      clickLevelEl.textContent = clickLevel;
+      autoLevelEl.textContent = autoLevel;
+
+      totalEarnedEl.textContent = Math.floor(totalEarned);
+      totalLostEl.textContent = Math.floor(totalLost);
+      highestEver = Math.max(highestEver, sems);
+      highestEverEl.textContent = Math.floor(highestEver);
+
+      bjWinsEl.textContent = bjWins;
+      bjLossesEl.textContent = bjLosses;
+    }
+
+    function addSems(amount, fromGamble = false) {
+      sems += amount;
+      if (amount > 0) totalEarned += amount;
+      if (amount < 0 && fromGamble) totalLost += -amount;
+      updateStats();
+    }
+
+    // -----------------------------
+    // CLICKER
+    // -----------------------------
+    const clickCircle = document.getElementById("clickCircle");
+    clickCircle.addEventListener("click", () => {
+      const mult = applySkinMultipliers(perClick, perSecond);
+      addSems(mult.click);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        clickCircle.click();
+      }
+    });
+
+    setInterval(() => {
+      const mult = applySkinMultipliers(perClick, perSecond);
+      if (mult.second > 0) {
+        addSems(mult.second);
+      }
+    }, 1000);
+
+    // -----------------------------
+    // SHOP: patroon +1 click, +1 auto, +2 click, +2 auto, ...
+    // -----------------------------
+    const shopItemsContainer = document.getElementById("shopItems");
+
+    const upgrades = [];
+    for (let i = 1; i <= 10; i++) {
+      const amount = i; // 1,2,3,4,...
+      upgrades.push({ type: "click", amount });
+      upgrades.push({ type: "auto", amount });
+    }
+
+    function getUpgradeCost(index) {
+      return 50 * (index + 1) * (index + 1);
+    }
+
+    function renderShop() {
+      shopItemsContainer.innerHTML = "";
+      upgrades.forEach((upg, i) => {
+        const cost = getUpgradeCost(i);
+        const div = document.createElement("div");
+        div.className = "shop-item";
+
+        const label = upg.type === "click"
+          ? `+${upg.amount} per klik`
+          : `+${upg.amount} per seconde`;
+
+        div.innerHTML = `
+          <span>${label}</span>
+          <span>Prijs: ${cost} SEM's</span>
+          <button class="btn secondary" data-upg="${i}">Koop</button>
+        `;
+        shopItemsContainer.appendChild(div);
+      });
+
+      shopItemsContainer.querySelectorAll("button[data-upg]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.getAttribute("data-upg"));
+          const upg = upgrades[idx];
+          const cost = getUpgradeCost(idx);
+          if (sems >= cost) {
+            addSems(-cost);
+            if (upg.type === "click") {
+              perClick += upg.amount;
+              clickLevel++;
+            } else {
+              perSecond += upg.amount;
+              autoLevel++;
+            }
+            updateStats();
+          } else {
+            alert("Niet genoeg SEM's!");
+          }
+        });
+      });
+    }
+
+    // -----------------------------
+    // PANELS
+    // -----------------------------
+    const panelButtons = document.querySelectorAll(".menu button");
+    const panels = document.querySelectorAll(".panel");
+
+    panelButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = btn.getAttribute("data-panel");
+        panels.forEach(p => p.classList.remove("active"));
+        const panel = document.getElementById("panel-" + target);
+        if (panel) panel.classList.add("active");
+      });
+    });
+
+    // -----------------------------
+    // SKINS
+    // -----------------------------
+    const appRoot = document.getElementById("appRoot");
+    document.querySelectorAll("[data-skin]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const skin = btn.getAttribute("data-skin");
+        currentSkin = skin;
+
+        appRoot.classList.remove("skin-skibidi", "skin-ohio", "skin-fanum", "skin-gyatt");
+        if (skin === "skibidi") appRoot.classList.add("skin-skibidi");
+        if (skin === "ohio") appRoot.classList.add("skin-ohio");
+        if (skin === "fanum") appRoot.classList.add("skin-fanum");
+        if (skin === "gyatt") appRoot.classList.add("skin-gyatt");
+
+        updateStats();
+      });
+    });
+
+    // -----------------------------
+    // BLACKJACK
+    // -----------------------------
+    let bjDeck = [];
+    let bjPlayerCards = [];
+    let bjDealerCards = [];
+
+    const bjSemsEl = document.getElementById("bjSems");
+    const bjBetEl = document.getElementById("bjBet");
+    const bjDealerEl = document.getElementById("bjDealer");
+    const bjPlayerEl = document.getElementById("bjPlayer");
+    const bjResultEl = document.getElementById("bjResult");
+
+    function updateBjSems() {
+      bjSemsEl.textContent = Math.floor(sems);
+    }
+
+    function createDeck() {
+      const deck = [];
+      const values = [2,3,4,5,6,7,8,9,10,10,10,10,11];
+      for (let i = 0; i < 4; i++) {
+        for (let v of values) deck.push(v);
+      }
+      return deck.sort(() => Math.random() - 0.5);
+    }
+
+    function sum(cards) {
+      let total = cards.reduce((a,b) => a+b, 0);
+      while (total > 21 && cards.includes(11)) {
+        cards[cards.indexOf(11)] = 1;
+        total = cards.reduce((a,b) => a+b, 0);
+      }
+      return total;
+    }
+
+    document.getElementById("bjStart").addEventListener("click", () => {
+      const bet = Number(bjBetEl.value);
+      if (bet <= 0 || bet > sems) {
+        bjResultEl.textContent = "Onvoldoende SEM's voor deze inzet.";
+        return;
+      }
+
+      addSems(-bet, true);
+      updateBjSems();
+
+      bjDeck = createDeck();
+      bjPlayerCards = [bjDeck.pop(), bjDeck.pop()];
+      bjDealerCards = [bjDeck.pop(), bjDeck.pop()];
+
+      bjPlayerEl.textContent = bjPlayerCards.join(" + ") + " = " + sum(bjPlayerCards);
+      bjDealerEl.textContent = bjDealerCards[0] + " + ?";
+      bjResultEl.textContent = "";
+    });
+
+    document.getElementById("bjHit").addEventListener("click", () => {
+      if (!bjDeck.length) return;
+      bjPlayerCards.push(bjDeck.pop());
+      const total = sum(bjPlayerCards);
+      bjPlayerEl.textContent = bjPlayerCards.join(" + ") + " = " + total;
+      if (total > 21) {
+        bjResultEl.textContent = "BUST! Je verliest.";
+        bjLosses++;
+        updateStats();
+      }
+    });
+
+    document.getElementById("bjStand").addEventListener("click", () => {
+      if (!bjDeck.length) return;
+      const bet = Number(bjBetEl.value);
+
+      bjDealerEl.textContent = bjDealerCards.join(" + ") + " = " + sum(bjDealerCards);
+      while (sum(bjDealerCards) < 17) {
+        bjDealerCards.push(bjDeck.pop());
+        bjDealerEl.textContent = bjDealerCards.join(" + ") + " = " + sum(bjDealerCards);
+      }
+
+      const player = sum(bjPlayerCards);
+      const dealer = sum(bjDealerCards);
+
+      if (player > 21) {
+        bjResultEl.textContent = "Je was al bust.";
+        bjLosses++;
+      } else if (dealer > 21 || player > dealer) {
+        addSems(bet * 2, true);
+        bjResultEl.textContent = "Je wint!";
+        bjWins++;
+      } else if (player === dealer) {
+        addSems(bet, true);
+        bjResultEl.textContent = "Gelijkspel.";
+      } else {
+        bjResultEl.textContent = "Dealer wint.";
+        bjLosses++;
+      }
+
+      updateBjSems();
+      updateStats();
+    });
+
+    // INIT
+    renderShop();
+    updateStats();
+    updateBjSems();
+  </script>
+</body>
+</html>
